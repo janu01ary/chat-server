@@ -12,6 +12,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -23,7 +24,7 @@ public class MessageController {
     private final RedisMessageListenerContainer redisContainer;
     private final RedisPubService redisPubService;
     private final RedisSubService redisSubService;
-    private final WebSocketPubService webSocketPubService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     private Map<String, ChannelTopic> channels;
     private List<String> roomIdList;
@@ -62,11 +63,8 @@ public class MessageController {
         if (messageDTO.getType() == MessageType.SEND) {
             redisPubService.sendRedisMessage(messageDTO.getRoomId(), messageDTO);
         }
-        else if (messageDTO.getType() == MessageType.TYPING || messageDTO.getType() == MessageType.TYPED) {
-            redisPubService.sendRedisMessage("typing/" + messageDTO.getRoomId(), messageDTO);
-        }
         else if (messageDTO.getType() == MessageType.INVITE) {
-            webSocketPubService.sendWebSocketMessage("/topic/" + messageDTO.getContent(), messageDTO);
+            messagingTemplate.convertAndSend("/topic/" + messageDTO.getContent(), messageDTO);
         }
     }
 
@@ -82,8 +80,8 @@ public class MessageController {
         MessageDTO messageDTO = new MessageDTO(MessageType.INVITE, senderId, roomId, "");
 
         System.out.println("roomId 전송: " + roomId + ", senderId: " + senderId + ", receiverId: " + receiverId);
-        webSocketPubService.sendWebSocketMessage("/topic/" + senderId, messageDTO);
-        webSocketPubService.sendWebSocketMessage("/topic/" + receiverId, messageDTO);
+        messagingTemplate.convertAndSend("/topic/" + senderId, messageDTO);
+        messagingTemplate.convertAndSend("/topic/" + receiverId, messageDTO);
     }
 
     // unique한 roomId 생성
