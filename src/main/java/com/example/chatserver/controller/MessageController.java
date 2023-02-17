@@ -46,6 +46,16 @@ public class MessageController {
         }
     }
 
+    // redis 구독 해제
+    @MessageMapping("/unsub")
+    public void unsub(String channel_name) {
+        if (channels.containsKey(channel_name)) {
+            redisContainer.removeMessageListener(redisSubService, channels.get(channel_name));
+            channels.remove(channel_name);
+            System.out.println("redis unsubscribe : " + channel_name + ", " + channels.toString());
+        }
+    }
+
     @MessageMapping("/receive")
     public void sendMessage(MessageDTO messageDTO) {
         System.out.println("socket에서 받음 : " + messageDTO.getSenderId() + " " + messageDTO.getType());
