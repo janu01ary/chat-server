@@ -11,6 +11,6 @@ public class WebSocketPubService {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void sendWebSocketMessage(String destination, MessageDTO messageDTO) {
-        messagingTemplate.convertAndSend(destination + messageDTO.getContent(), messageDTO);
+        messagingTemplate.convertAndSend(destination, messageDTO);
     }
 }
