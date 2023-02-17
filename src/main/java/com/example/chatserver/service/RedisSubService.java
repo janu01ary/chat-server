@@ -22,6 +22,9 @@ public class RedisSubService implements MessageListener {
             if (messageDTO.getType() == MessageType.SEND) {
                 webSocketPubService.sendWebSocketMessage("/topic/" + messageDTO.getRoomId(), messageDTO);
             }
+            else if (messageDTO.getType() == MessageType.TYPING || messageDTO.getType() == MessageType.TYPED) {
+                webSocketPubService.sendWebSocketMessage("/topic/typing/" + messageDTO.getRoomId(), messageDTO);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

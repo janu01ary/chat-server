@@ -63,6 +63,9 @@ public class MessageController {
         if (messageDTO.getType() == MessageType.SEND) {
             redisPubService.sendRedisMessage(messageDTO.getRoomId(), messageDTO);
         }
+        else if (messageDTO.getType() == MessageType.TYPING || messageDTO.getType() == MessageType.TYPED) {
+            redisPubService.sendRedisMessage("typing/" + messageDTO.getRoomId(), messageDTO);
+        }
         else if (messageDTO.getType() == MessageType.INVITE) {
             messagingTemplate.convertAndSend("/topic/" + messageDTO.getContent(), messageDTO);
         }
