@@ -46,6 +46,8 @@ public class MessageController {
         }
     }
 
+    private final SimpMessagingTemplate messagingTemplate;
+
     @MessageMapping("/receive")
     public void sendMessage(MessageDTO messageDTO) {
         System.out.println("socket에서 받음 : " + messageDTO.getSenderId() + " " + messageDTO.getType());
