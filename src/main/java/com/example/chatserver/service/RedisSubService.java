@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RedisSubService implements MessageListener {
+
     private final WebSocketPubService webSocketPubService;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -29,4 +30,5 @@ public class RedisSubService implements MessageListener {
             e.printStackTrace();
         }
     }
+
 }

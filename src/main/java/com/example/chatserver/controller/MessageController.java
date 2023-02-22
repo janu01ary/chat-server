@@ -12,7 +12,6 @@ import org.json.simple.parser.ParseException;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -21,10 +20,11 @@ import java.util.*;
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
+
     private final RedisMessageListenerContainer redisContainer;
     private final RedisPubService redisPubService;
     private final RedisSubService redisSubService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketPubService webSocketPubService;
 
     private Map<String, ChannelTopic> channels;
     private List<String> roomIdList;
@@ -47,9 +47,9 @@ public class MessageController {
         }
     }
 
-    // redis 구독 해제
     @MessageMapping("/unsub")
     public void unsub(String channel_name) {
+        // redis 구독 해제
         if (channels.containsKey(channel_name)) {
             redisContainer.removeMessageListener(redisSubService, channels.get(channel_name));
             channels.remove(channel_name);
@@ -59,6 +59,7 @@ public class MessageController {
 
     @MessageMapping("/receive")
     public void sendMessage(MessageDTO messageDTO) {
+        // websocket에서 온 메시지 처리
         System.out.println("socket에서 받음 : " + messageDTO.getSenderId() + " " + messageDTO.getType());
         if (messageDTO.getType() == MessageType.SEND) {
             redisPubService.sendRedisMessage(messageDTO.getRoomId(), messageDTO);
@@ -67,13 +68,13 @@ public class MessageController {
             redisPubService.sendRedisMessage("typing/" + messageDTO.getRoomId(), messageDTO);
         }
         else if (messageDTO.getType() == MessageType.INVITE) {
-            messagingTemplate.convertAndSend("/topic/" + messageDTO.getContent(), messageDTO);
+            webSocketPubService.sendWebSocketMessage("/topic/" + messageDTO.getContent(), messageDTO);
         }
     }
 
-    // roomId를 생성해서 전송
     @MessageMapping("/getRoomId")
     public void sendRoomId(String userIds) throws ParseException {
+        // roomId를 생성해서 전송
         Object obj = new JSONParser().parse(userIds);
         JSONObject jsonObj = (JSONObject) obj;
 
@@ -83,12 +84,12 @@ public class MessageController {
         MessageDTO messageDTO = new MessageDTO(MessageType.INVITE, senderId, roomId, "");
 
         System.out.println("roomId 전송: " + roomId + ", senderId: " + senderId + ", receiverId: " + receiverId);
-        messagingTemplate.convertAndSend("/topic/" + senderId, messageDTO);
-        messagingTemplate.convertAndSend("/topic/" + receiverId, messageDTO);
+        webSocketPubService.sendWebSocketMessage("/topic/" + senderId, messageDTO);
+        webSocketPubService.sendWebSocketMessage("/topic/" + receiverId, messageDTO);
     }
 
-    // unique한 roomId 생성
     private String getRoomId() {
+        // unique한 roomId 생성
         String roomId = new Random().ints(48, 123) // 48: 0의 ascii code, 123: z의 ascii code인 122에 + 1
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))  // 숫자나 알파벳이 아닌 것을 필터링함
                 .limit(6)  // 길이를 6으로
@@ -104,4 +105,5 @@ public class MessageController {
         roomIdList.add(roomId);
         return roomId;
     }
+
 }

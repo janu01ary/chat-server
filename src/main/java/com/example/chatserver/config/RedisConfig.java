@@ -34,9 +34,9 @@ public class RedisConfig {
         return redisTemplate;
     }
 
-    // 컨테이너 설정
     @Bean
     RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory) {
+        // 컨테이너 설정
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         return container;
