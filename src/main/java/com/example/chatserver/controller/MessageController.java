@@ -20,6 +20,7 @@ import java.util.*;
 @RestController
 @RequiredArgsConstructor
 public class MessageController {
+
     private final RedisMessageListenerContainer redisContainer;
     private final RedisPubService redisPubService;
     private final RedisSubService redisSubService;
@@ -104,4 +105,5 @@ public class MessageController {
         roomIdList.add(roomId);
         return roomId;
     }
+
 }

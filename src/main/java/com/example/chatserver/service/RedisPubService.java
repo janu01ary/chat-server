@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RedisPubService {
+
     private final RedisTemplate redisTemplate;
 
     public void sendRedisMessage(String channel, MessageDTO messageDTO) {
         redisTemplate.convertAndSend(channel, messageDTO);
     }
+
 }
