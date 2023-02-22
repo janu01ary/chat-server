@@ -46,9 +46,9 @@ public class MessageController {
         }
     }
 
-    // redis 구독 해제
     @MessageMapping("/unsub")
     public void unsub(String channel_name) {
+        // redis 구독 해제
         if (channels.containsKey(channel_name)) {
             redisContainer.removeMessageListener(redisSubService, channels.get(channel_name));
             channels.remove(channel_name);
@@ -58,6 +58,7 @@ public class MessageController {
 
     @MessageMapping("/receive")
     public void sendMessage(MessageDTO messageDTO) {
+        // websocket에서 온 메시지 처리
         System.out.println("socket에서 받음 : " + messageDTO.getSenderId() + " " + messageDTO.getType());
         if (messageDTO.getType() == MessageType.SEND) {
             redisPubService.sendRedisMessage(messageDTO.getRoomId(), messageDTO);
@@ -70,9 +71,9 @@ public class MessageController {
         }
     }
 
-    // roomId를 생성해서 전송
     @MessageMapping("/getRoomId")
     public void sendRoomId(String userIds) throws ParseException {
+        // roomId를 생성해서 전송
         Object obj = new JSONParser().parse(userIds);
         JSONObject jsonObj = (JSONObject) obj;
 
@@ -86,8 +87,8 @@ public class MessageController {
         webSocketPubService.sendWebSocketMessage("/topic/" + receiverId, messageDTO);
     }
 
-    // unique한 roomId 생성
     private String getRoomId() {
+        // unique한 roomId 생성
         String roomId = new Random().ints(48, 123) // 48: 0의 ascii code, 123: z의 ascii code인 122에 + 1
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))  // 숫자나 알파벳이 아닌 것을 필터링함
                 .limit(6)  // 길이를 6으로
